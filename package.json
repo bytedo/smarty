@@ -1,0 +1,22 @@
+{
+  "name": "smartyx",
+  "version": "0.0.1",
+  "description": "nodeJS模板引擎，理念源自于PHP的smarty模板引擎",
+  "keywords": [
+    "dojs",
+    "smarty",
+    "template",
+    "ejs",
+    "jade"
+  ],
+  "author": "宇天 <yutent@doui.cc>",
+  "repository": {
+    "type": "git",
+    "url": "https://git.oschina.net/yutent/smartyx.git"
+  },
+  "dependencies": {
+    "dojs-extend": "^1.1.2"
+  },
+  "devDependencies": {},
+  "main": "lib/main.js"
+}
