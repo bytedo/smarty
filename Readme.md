@@ -1,3 +1,5 @@
+![module info](https://nodei.co/npm/smartyx.png?downloads=true&downloadRank=true&stars=true)
+
 # 模板引擎
 > 因为我原先是个PHPer，也一直喜欢smarty那个模板引擎，所以在nodeJS上，我也喜欢能有一款类似于smarty的的模板引擎，可惜我所知的几个引擎中，并没有smarty的理念，故自己开发了一款。
 然而nodeJS并不是php，完全的模拟smarty又会失去nodeJS的味道，所以，我并不打算做nodeJS版的smarty，只是吸收了smarty的一些优秀的理念， 再结合nodeJS，开发了一套简单易用的模板引擎。
