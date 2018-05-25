@@ -1,6 +1,6 @@
 {
   "name": "smartyx",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "nodeJS模板引擎，理念源自于PHP的smarty模板引擎",
   "keywords": [
     "fivejs",
@@ -15,7 +15,7 @@
     "url": "https://github.com/yutent/smarty.git"
   },
   "dependencies": {
-    "es.shim": "^1.0.0",
+    "es.shim": "^1.0.1",
     "iofs": "^1.1.0"
   },
   "devDependencies": {},
