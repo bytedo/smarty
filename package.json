@@ -1,6 +1,6 @@
 {
   "name": "smartyx",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "nodeJS模板引擎，理念源自于PHP的smarty模板引擎",
   "keywords": [
     "fivejs",
