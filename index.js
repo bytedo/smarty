@@ -25,8 +25,7 @@ class Smarty {
     this.__REG__ = new RegExp(this.opt.ext + '$')
     this.tool = new Tool(this.opt)
     this.__DATA__ = Object.create(null) // 预定义的变量储存
-    this.__TMP__ = Object.create(null) // 模板缓存
-    this.__CACHE__ = Object.create(null) // 渲染缓存(模板被解析后)
+    this.__CACHE__ = Object.create(null) // 渲染缓存
   }
 
   config(key, val) {
@@ -61,6 +60,7 @@ class Smarty {
    */
   render(tpl = '', noParse = false) {
     var key = null
+    var cache
     if (!this.opt.path) {
       throw new Error('Smarty engine must define path option')
     }
@@ -79,17 +79,19 @@ class Smarty {
       return Promise.resolve(this.__CACHE__[key])
     }
 
-    this.__TMP__[key] = this.tool.__readFile__(tpl, noParse)
+    cache = this.tool.__readFile__(tpl, noParse)
 
     if (noParse) {
-      this.__CACHE__[key] = this.__TMP__[key]
-      delete this.__TMP__[key]
-      return Promise.resolve(this.__CACHE__[key])
+      this.__CACHE__[key] = cache
+      return Promise.resolve(cache)
     }
 
     try {
-      this.__CACHE__[key] = this.tool.parse(this.__TMP__[key], this.__DATA__)
-      return Promise.resolve(this.__CACHE__[key])
+      cache = this.tool.parse(cache, this.__DATA__)
+      if (this.opt.cache) {
+        this.__CACHE__[key] = cache
+      }
+      return Promise.resolve(cache)
     } catch (err) {
       return Promise.reject(err)
     }
