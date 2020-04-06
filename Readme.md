@@ -37,7 +37,7 @@ const smarty = new Smartyx({cache: true, path: '{path_of_views}', ...})
 
 1. **cache** - 是否缓存模板编译, 默认 true
 2. **path** - 模板根目录
-3. **delimiter** - 模板界定符, 默认为`['<!--{', '}-->']`
+3. **ext** - 模板后缀名, 默认为 .tpl
 
 ### 2.assign(key, val)
 
