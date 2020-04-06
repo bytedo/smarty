@@ -7,6 +7,7 @@
 'use strict'
 
 require('es.shim')
+
 const Tool = require('./lib/tool')
 const path = require('path')
 
@@ -22,17 +23,19 @@ class Smarty {
     }
 
     this.__REG__ = new RegExp(this.opt.ext + '$')
-    this.tool = new Tool()
+    this.tool = new Tool(this.opt)
     this.__DATA__ = Object.create(null) // 预定义的变量储存
-    this.__CACHE__ = Object.create(null) // 模块缓存
+    this.__TMP__ = Object.create(null) // 模板缓存
+    this.__CACHE__ = Object.create(null) // 渲染缓存(模板被解析后)
   }
 
   config(key, val) {
     key += ''
-    if (!key || !val) {
+    if (!key || val === undefined) {
       return
     }
     this.opt[key] = val
+    this.tool.opt[key] = val
   }
 
   /**
@@ -58,7 +61,7 @@ class Smarty {
    */
   render(tpl = '', noParse = false) {
     var key = null
-    if (!this.tool.opt.path) {
+    if (!this.opt.path) {
       throw new Error('Smarty engine must define path option')
     }
     if (!tpl) {
@@ -72,17 +75,20 @@ class Smarty {
 
     key = hash(tpl)
 
-    if (this.opt.cache && this.__CACHE__[key]) {
+    if (this.__CACHE__[key]) {
       return Promise.resolve(this.__CACHE__[key])
     }
 
-    this.__CACHE__[key] = this.tool.__tpl__(tpl, noParse)
+    this.__TMP__[key] = this.tool.__readFile__(tpl, noParse)
+
     if (noParse) {
-      return this.__CACHE__[key]
+      this.__CACHE__[key] = this.__TMP__[key]
+      delete this.__TMP__[key]
+      return Promise.resolve(this.__CACHE__[key])
     }
 
     try {
-      this.__CACHE__[key] = this.tool.parse(this.__CACHE__[key], this.__DATA__)
+      this.__CACHE__[key] = this.tool.parse(this.__TMP__[key], this.__DATA__)
       return Promise.resolve(this.__CACHE__[key])
     } catch (err) {
       return Promise.reject(err)
