@@ -8,18 +8,22 @@
 
 require('es.shim')
 const Tool = require('./lib/tool')
-const md5 = require('./lib/md5')
+
+function hash(str) {
+  return Buffer.from(str).toString('hex')
+}
 
 class Smarty {
   constructor(opt) {
-    this.opt = { cache: true }
+    this.opt = { cache: true, ext: '.tpl' }
     if (opt) {
       Object.assign(this.opt, opt)
     }
 
+    this.__REG__ = new RegExp(this.opt.ext + '$')
     this.tool = new Tool(this.opt)
-    this.data = {} // 预定义的变量储存
-    this.cache = {} // 模块缓存
+    this.__DATA__ = Object.create(null) // 预定义的变量储存
+    this.__CACHE__ = Object.create(null) // 模块缓存
   }
 
   config(key, val) {
@@ -37,7 +41,7 @@ class Smarty {
       return this
     }
 
-    this.data[key] = val
+    this.__DATA__[key] = val
     return this
   }
 
@@ -45,32 +49,36 @@ class Smarty {
    * [render 模板渲染]
    * @param  {String} tpl  模板路径
    * @param  {String} uuid 唯一标识
+   * @param  {Boolean} noParse 不解析直接读取
    * @return {Promise} 返回一个Promise对象
    */
-  render(tpl = '', uuid = '') {
+  render(tpl = '', uuid = '', noParse = false) {
+    var key = null
     if (!this.tool.opt.path) {
-      console.log(this.tool)
       throw new Error('Smarty engine must define path option')
     }
     if (!tpl) {
       return Promise.reject('argument[tpl] can not be empty')
     }
 
-    if (!/\.tpl$/.test(tpl)) {
-      tpl += '.tpl'
+    if (!this.__REG__.test(tpl)) {
+      tpl += this.opt.ext
     }
 
-    let cacheId = md5(tpl + uuid)
+    key = hash(tpl + uuid)
 
-    if (this.opt.cache && this.cache[cacheId]) {
-      return Promise.resolve(this.cache[cacheId])
+    if (this.opt.cache && this.__CACHE__[key]) {
+      return Promise.resolve(this.__CACHE__[key])
     }
 
-    this.cache[cacheId] = this.tool.__tpl__(tpl)
+    this.__CACHE__[key] = this.tool.__tpl__(tpl, noParse)
+    if (noParse) {
+      return this.__CACHE__[key]
+    }
 
     try {
-      this.cache[cacheId] = this.tool.parse(this.cache[cacheId], this.data)
-      return Promise.resolve(this.cache[cacheId])
+      this.__CACHE__[key] = this.tool.parse(this.__CACHE__[key], this.__DATA__)
+      return Promise.resolve(this.__CACHE__[key])
     } catch (err) {
       return Promise.reject(err)
     }
