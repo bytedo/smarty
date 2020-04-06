@@ -6,7 +6,7 @@
 
 > **注：**
 >
-> 1. `只支持.tpl后缀的模板文件， 在引用模板文件时该后缀可以省略不写。`
+> 1. `默认使用.tpl后缀的模板文件， 在引用模板文件时该后缀可以省略不写。`
 > 2. `模板的路径/文件名, 可以不写引号(推荐)`
 
 ## API
@@ -27,7 +27,7 @@ const smarty = new Smartyx()
 
 smarty.config('cache', false)
 smarty.config('path', '{path_of_views}')
-smarty.config('cache', false)
+smarty.config('ext', '.htm') //修改模板后缀名
 
 // 或者实例化时传入
 const smarty = new Smartyx({cache: true, path: '{path_of_views}', ...})
@@ -60,14 +60,14 @@ smarty.assign('page', 20)
 smarty.assign('phoneReg', /^1[34578]\d{9}$/)
 ```
 
-### 3.render(tpl[, uuid])
+### 3.render(tpl[, noParse])
 
 * tpl `<String>`
-* uuid `<String>` 可选
+* noParse `<String>` 可选
 
 > 该方法用于渲染一个模板，返回值为一个 Promise 对象;
 > `tpl` 即为要渲染的模板的绝对路径，默认是`.tpl`后缀， 该后缀可以省略。
-> `uuid` 是一个唯一标识，用于开启模板缓存，但又想页面渲染的时候，可以根据不同的情况渲染不同的内容。
+> `noParse` 对于一些页面, 本身不需要走渲染动态数据的, 可加上这个参数, 直接原样输出模板
 
 ```javascript
 smarty.assign('foo', 'bar')

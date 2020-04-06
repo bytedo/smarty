@@ -8,6 +8,7 @@
 
 require('es.shim')
 const Tool = require('./lib/tool')
+const path = require('path')
 
 function hash(str) {
   return Buffer.from(str).toString('hex')
@@ -21,13 +22,17 @@ class Smarty {
     }
 
     this.__REG__ = new RegExp(this.opt.ext + '$')
-    this.tool = new Tool(this.opt)
+    this.tool = new Tool()
     this.__DATA__ = Object.create(null) // 预定义的变量储存
     this.__CACHE__ = Object.create(null) // 模块缓存
   }
 
   config(key, val) {
-    this.tool.config(key, val)
+    key += ''
+    if (!key || !val) {
+      return
+    }
+    this.opt[key] = val
   }
 
   /**
@@ -48,11 +53,10 @@ class Smarty {
   /**
    * [render 模板渲染]
    * @param  {String} tpl  模板路径
-   * @param  {String} uuid 唯一标识
    * @param  {Boolean} noParse 不解析直接读取
    * @return {Promise} 返回一个Promise对象
    */
-  render(tpl = '', uuid = '', noParse = false) {
+  render(tpl = '', noParse = false) {
     var key = null
     if (!this.tool.opt.path) {
       throw new Error('Smarty engine must define path option')
@@ -64,8 +68,9 @@ class Smarty {
     if (!this.__REG__.test(tpl)) {
       tpl += this.opt.ext
     }
+    tpl = path.resolve(this.opt.path, tpl)
 
-    key = hash(tpl + uuid)
+    key = hash(tpl)
 
     if (this.opt.cache && this.__CACHE__[key]) {
       return Promise.resolve(this.__CACHE__[key])
