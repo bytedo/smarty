@@ -1,5 +1,5 @@
 /**
- * nodeJS 模板引擎(依赖doJS框架)
+ * nodeJS 模板引擎
  * @authors yutent (yutent@doui.cc)
  * @date    2015-12-28 13:57:12
  *
@@ -10,6 +10,7 @@ require('es.shim')
 
 const Tool = require('./lib/tool')
 const path = require('path')
+const fs = require('iofs')
 
 function hash(str) {
   return Buffer.from(str).toString('hex')
@@ -76,20 +77,22 @@ class Smarty {
     key = hash(tpl)
 
     if (this.__CACHE__[key]) {
-      return Promise.resolve(this.__CACHE__[key])
+      return Promise.resolve(fs.cat(path.resolve('./cache/', key)))
     }
 
     cache = this.tool.__readFile__(tpl, noParse)
 
     if (noParse) {
-      this.__CACHE__[key] = cache
+      this.__CACHE__[key] = true
+      fs.echo(cache, path.resolve('./cache/', key))
       return Promise.resolve(cache)
     }
 
     try {
       cache = this.tool.parse(cache, this.__DATA__)
       if (this.opt.cache) {
-        this.__CACHE__[key] = cache
+        this.__CACHE__[key] = true
+        fs.echo(cache, path.resolve('./cache/', key))
       }
       return Promise.resolve(cache)
     } catch (err) {
