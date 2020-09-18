@@ -4,19 +4,19 @@
  * @date 2020/09/18 13:36:47
  */
 
-require('es.shim')
+import 'es.shim'
+import path from 'path'
+import fs from 'iofs'
 
-const Tool = require('./lib/tool')
-const path = require('path')
-const fs = require('iofs')
+import Tool from './lib/tool.mjs'
 
 function hash(str) {
   return Buffer.from(str).toString('hex')
 }
 
-class Smarty {
+export default class Smarty {
   constructor(opt) {
-    this.opt = { cache: true, ext: '.tpl' }
+    this.opt = { cache: true, ext: '.htm' }
     if (opt) {
       Object.assign(this.opt, opt)
     }
@@ -53,32 +53,32 @@ class Smarty {
 
   /**
    * [render 模板渲染]
-   * @param  {String} tpl  模板路径
+   * @param  {String} filePath  模板路径
    * @param  {Boolean} noParse 不解析直接读取
    * @return {Promise} 返回一个Promise对象
    */
-  render(tpl = '', noParse = false) {
+  render(filePath = '', noParse = false) {
     var key = null
     var cache
     if (!this.opt.path) {
       throw new Error('Smarty engine must define path option')
     }
-    if (!tpl) {
-      return Promise.reject('argument[tpl] can not be empty')
+    if (!filePath) {
+      return Promise.reject('argument[filePath] can not be empty')
     }
 
-    if (!this.__REG__.test(tpl)) {
-      tpl += this.opt.ext
+    if (!this.__REG__.test(filePath)) {
+      filePath += this.opt.ext
     }
-    tpl = path.resolve(this.opt.path, tpl)
+    filePath = path.resolve(this.opt.path, filePath)
 
-    key = hash(tpl)
+    key = hash(filePath)
 
     if (this.__CACHE__[key]) {
       return Promise.resolve(fs.cat(path.resolve('./cache/', key)))
     }
 
-    cache = this.tool.__readFile__(tpl, noParse)
+    cache = this.tool.__readFile__(filePath, noParse)
 
     if (noParse) {
       this.__CACHE__[key] = true
@@ -98,5 +98,3 @@ class Smarty {
     }
   }
 }
-
-module.exports = Smarty
