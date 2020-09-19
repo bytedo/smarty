@@ -2,7 +2,14 @@
   "name": "smartyx",
   "version": "2.0.0",
   "description": "nodeJS模板引擎，理念源自于PHP的smarty模板引擎",
-  "keywords": ["fivejs", "php", "smarty", "template", "ejs", "jade"],
+  "keywords": [
+    "fivejs",
+    "php",
+    "smarty",
+    "template",
+    "ejs",
+    "jade"
+  ],
   "author": "yutent <yutent.io@gmail.com>",
   "repository": {
     "type": "git",
@@ -10,7 +17,7 @@
   },
   "dependencies": {
     "es.shim": "^2.0.0",
-    "iofs": "^2.0.0"
+    "iofs": "^1.4.0"
   },
   "main": "index.js",
   "exports": {
