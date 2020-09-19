@@ -16,7 +16,7 @@ function hash(str) {
 
 class Smarty {
   constructor(opt) {
-    this.opt = { cache: true, ext: '.tpl' }
+    this.opt = { cache: true, ext: '.htm' }
     if (opt) {
       Object.assign(this.opt, opt)
     }
