@@ -7,6 +7,7 @@
 import 'es.shim'
 import path from 'path'
 import fs from 'iofs'
+import { fileURLToPath } from 'url'
 
 import Tool from './lib/tool.mjs'
 
@@ -14,17 +15,27 @@ function hash(str) {
   return Buffer.from(str).toString('hex')
 }
 
+var __dirname = path.dirname(fileURLToPath(import.meta.url))
+var cacheDir = path.resolve(__dirname, './cache/')
+
 export default class Smarty {
   constructor(opt) {
-    this.opt = { cache: true, ext: '.htm' }
+    this.opt = { ext: '.htm' }
     if (opt) {
       Object.assign(this.opt, opt)
     }
 
     this.__REG__ = new RegExp(this.opt.ext + '$')
     this.tool = new Tool(this.opt)
-    this.__DATA__ = Object.create(null) // 预定义的变量储存
+
+    this.reset()
     this.__CACHE__ = Object.create(null) // 渲染缓存
+    // 消除缓存目录
+    fs.rm(cacheDir)
+  }
+
+  reset() {
+    this.__DATA__ = Object.create(null) // 预定义的变量储存
   }
 
   config(key, val) {
@@ -58,8 +69,8 @@ export default class Smarty {
    * @return {Promise} 返回一个Promise对象
    */
   render(filePath = '', noParse = false) {
-    var key = null
-    var cache
+    var key, ckey, cache, needWrite
+
     if (!this.opt.path) {
       throw new Error('Smarty engine must define path option')
     }
@@ -73,26 +84,33 @@ export default class Smarty {
     filePath = path.resolve(this.opt.path, filePath)
 
     key = hash(filePath)
+    ckey = path.join(cacheDir, key)
 
     if (this.__CACHE__[key]) {
-      return Promise.resolve(fs.cat(path.resolve('./cache/', key)))
+      cache = fs.cat(ckey)
+    } else {
+      cache = fs.cat(filePath)
+      this.__CACHE__[key] = true
+      needWrite = true
     }
 
-    cache = this.tool.__readFile__(filePath, noParse)
-
+    // 无需解析时, 直接输出
     if (noParse) {
-      this.__CACHE__[key] = true
-      fs.echo(cache, path.resolve('./cache/', key))
+      if (needWrite) {
+        fs.echo(cache, ckey)
+      }
       return Promise.resolve(cache)
+    } else {
+      if (needWrite) {
+        cache = this.tool.parse(cache)
+        fs.echo(cache, ckey)
+      }
     }
 
     try {
-      cache = this.tool.parse(cache, this.__DATA__)
-      if (this.opt.cache) {
-        this.__CACHE__[key] = true
-        fs.echo(cache, path.resolve('./cache/', key))
-      }
-      return Promise.resolve(cache)
+      var body = this.tool.exec(cache, this.__DATA__)
+      this.reset()
+      return Promise.resolve(body)
     } catch (err) {
       return Promise.reject(err)
     }

@@ -14,17 +14,26 @@ function hash(str) {
   return Buffer.from(str).toString('hex')
 }
 
+var cacheDir = path.resolve(__dirname, './cache/')
+
 class Smarty {
   constructor(opt) {
-    this.opt = { cache: true, ext: '.htm' }
+    this.opt = { ext: '.htm' }
     if (opt) {
       Object.assign(this.opt, opt)
     }
 
     this.__REG__ = new RegExp(this.opt.ext + '$')
     this.tool = new Tool(this.opt)
-    this.__DATA__ = Object.create(null) // 预定义的变量储存
+
+    this.reset()
     this.__CACHE__ = Object.create(null) // 渲染缓存
+    // 消除缓存目录
+    fs.rm(cacheDir)
+  }
+
+  reset() {
+    this.__DATA__ = Object.create(null) // 预定义的变量储存
   }
 
   config(key, val) {
@@ -53,46 +62,53 @@ class Smarty {
 
   /**
    * [render 模板渲染]
-   * @param  {String} tpl  模板路径
+   * @param  {String} filePath  模板路径
    * @param  {Boolean} noParse 不解析直接读取
    * @return {Promise} 返回一个Promise对象
    */
-  render(tpl = '', noParse = false) {
-    var key = null
-    var cache
+  render(filePath = '', noParse = false) {
+    var key, ckey, cache, needWrite
+
     if (!this.opt.path) {
       throw new Error('Smarty engine must define path option')
     }
-    if (!tpl) {
-      return Promise.reject('argument[tpl] can not be empty')
+    if (!filePath) {
+      return Promise.reject('argument[filePath] can not be empty')
     }
 
-    if (!this.__REG__.test(tpl)) {
-      tpl += this.opt.ext
+    if (!this.__REG__.test(filePath)) {
+      filePath += this.opt.ext
     }
-    tpl = path.resolve(this.opt.path, tpl)
+    filePath = path.resolve(this.opt.path, filePath)
 
-    key = hash(tpl)
+    key = hash(filePath)
+    ckey = path.join(cacheDir, key)
 
     if (this.__CACHE__[key]) {
-      return Promise.resolve(fs.cat(path.resolve('./cache/', key)))
+      cache = fs.cat(ckey)
+    } else {
+      cache = fs.cat(filePath)
+      this.__CACHE__[key] = true
+      needWrite = true
     }
 
-    cache = this.tool.__readFile__(tpl, noParse)
-
+    // 无需解析时, 直接输出
     if (noParse) {
-      this.__CACHE__[key] = true
-      fs.echo(cache, path.resolve('./cache/', key))
+      if (needWrite) {
+        fs.echo(cache, ckey)
+      }
       return Promise.resolve(cache)
+    } else {
+      if (needWrite) {
+        cache = this.tool.parse(cache)
+        fs.echo(cache, ckey)
+      }
     }
 
     try {
-      cache = this.tool.parse(cache, this.__DATA__)
-      if (this.opt.cache) {
-        this.__CACHE__[key] = true
-        fs.echo(cache, path.resolve('./cache/', key))
-      }
-      return Promise.resolve(cache)
+      var body = this.tool.exec(cache, this.__DATA__)
+      this.reset()
+      return Promise.resolve(body)
     } catch (err) {
       return Promise.reject(err)
     }
