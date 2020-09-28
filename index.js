@@ -29,7 +29,9 @@ class Smarty {
     this.reset()
     this.__CACHE__ = Object.create(null) // 渲染缓存
     // 消除缓存目录
-    fs.rm(cacheDir)
+    if (fs.isdir(cacheDir)) {
+      fs.rm(cacheDir)
+    }
   }
 
   reset() {

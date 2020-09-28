@@ -1,6 +1,6 @@
 {
   "name": "smartyx",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "nodeJS模板引擎，理念源自于PHP的smarty模板引擎",
   "keywords": ["fivejs", "php", "smarty", "template", "ejs", "jade"],
   "author": "yutent <yutent.io@gmail.com>",
